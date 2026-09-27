@@ -1,0 +1,10 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+:root { --bg:#f4f7f6; --surface:#ffffff; --surface-2:#f8faf9; --ink:#14201d; --muted:#63706c; --line:#dfe7e4; --brand:#087f5b; --brand-2:#0ca678; --danger:#c92a2a; --warning:#e67700; }
+.dark { --bg:#0b1210; --surface:#111b18; --surface-2:#16231f; --ink:#edf5f2; --muted:#9dafaa; --line:#273a34; --brand:#38d9a9; --brand-2:#20c997; --danger:#ff8787; --warning:#ffc078; }
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif} button,input,select,textarea{font:inherit} button{cursor:pointer} a{text-decoration:none;color:inherit}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 30px rgba(23,48,40,.04)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;border:0;border-radius:10px;padding:.7rem 1rem;font-weight:700}.btn-primary{background:var(--brand);color:#fff}.btn-secondary{background:var(--surface-2);color:var(--ink);border:1px solid var(--line)}
+.input{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);padding:.72rem .85rem;outline:none}.input:focus{border-color:var(--brand);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 18%,transparent)}
+.label{display:grid;gap:.4rem;font-size:.86rem;font-weight:700}.muted{color:var(--muted)}
+@media(forced-colors:active){.card,.btn,.input{border:1px solid CanvasText}}

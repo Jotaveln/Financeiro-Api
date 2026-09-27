@@ -1,0 +1,3 @@
+"use client";
+import { X } from "lucide-react";
+export function Modal({open,onClose,title,children}){if(!open)return null;return <div className="fixed inset-0 z-[80] grid place-items-center bg-black/55 p-4" role="dialog" aria-modal="true" aria-labelledby="modal-title" onMouseDown={e=>e.target===e.currentTarget&&onClose()}><div className="card max-h-[90vh] w-full max-w-lg overflow-auto p-6"><div className="mb-5 flex items-center justify-between"><h2 id="modal-title" className="text-xl font-black">{title}</h2><button className="btn btn-secondary !p-2" onClick={onClose} aria-label="Fechar"><X size={17}/></button></div>{children}</div></div>}
