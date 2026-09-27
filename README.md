@@ -62,8 +62,8 @@ Com PostgreSQL disponível, crie o banco e aplique o schema:
 ```powershell
 dotnet restore Financeiro-Api.sln
 dotnet tool restore # restaura o manifesto local dotnet-tools.json
-dotnet ef migrations list --project backend/src/Financeiro.Infrastructure --startup-project backend/src/Financeiro.Api
-dotnet ef database update --project backend/src/Financeiro.Infrastructure --startup-project backend/src/Financeiro.Api
+dotnet ef migrations list --context FinanceiroDbContext --project backend/src/Financeiro.Infrastructure/Financeiro.Infrastructure.csproj --startup-project backend/src/Financeiro.Api/Financeiro.Api.csproj
+dotnet ef database update --context FinanceiroDbContext --project backend/src/Financeiro.Infrastructure/Financeiro.Infrastructure.csproj --startup-project backend/src/Financeiro.Api/Financeiro.Api.csproj
 ```
 
 O seed só roda quando `Seed__Enabled=true`. Use `Seed__Email` e `Seed__Password` no ambiente; não coloque credenciais reais no Git. O valor padrão é `false`.
@@ -149,4 +149,6 @@ Alternativa: crie o repositório vazio na interface do GitHub e execute `git rem
 - O preço de investimentos é informado manualmente; não há dependência de API paga.
 - Exportação obrigatória é CSV; Excel/PDF não fazem parte do núcleo atual.
 - O preview de importação CSV está disponível; confirme/normalize linhas conforme o contrato da API antes de persistir.
-- Integração PostgreSQL/Docker, build npm e testes E2E devem ser executados em máquina com as dependências instaladas.
+- A integração PostgreSQL real depende de Docker ou de uma connection string externa; o teste automatizado é executado com `RUN_POSTGRES_INTEGRATION=true`.
+- A auditoria npm atual registra vulnerabilidades transitivas em Vitest/PostCSS; a correção disponível exige upgrades breaking para Vitest 5 e Next 16, por isso não foi aplicada sem uma rodada dedicada de compatibilidade.
+- Build npm e testes E2E devem ser executados em máquina com as dependências instaladas.

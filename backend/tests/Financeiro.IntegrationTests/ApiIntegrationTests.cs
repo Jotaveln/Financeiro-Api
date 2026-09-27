@@ -25,8 +25,7 @@ public sealed class ApiIntegrationTests
         PostgreSqlContainer postgres;
         try
         {
-            postgres = new PostgreSqlBuilder()
-                .WithImage("postgres:17-alpine")
+            postgres = new PostgreSqlBuilder("postgres:17-alpine")
                 .WithDatabase("financeiro_test")
                 .WithUsername("postgres")
                 .WithPassword("postgres")
@@ -71,6 +70,8 @@ public sealed class ApiIntegrationTests
         var secondEmail = $"{Guid.NewGuid():N}@example.test";
         var secondRegister = await client.PostAsJsonAsync("/api/v1/auth/register", new { name = "Pessoa Dois", email = secondEmail, password });
         Assert.Equal(HttpStatusCode.Created, secondRegister.StatusCode);
+        var secondAuth = await secondRegister.Content.ReadFromJsonAsync<JsonElement>();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", secondAuth.GetProperty("accessToken").GetString());
         var otherAccount = await client.GetAsync($"/api/v1/accounts/{sourceId}");
         Assert.Equal(HttpStatusCode.NotFound, otherAccount.StatusCode);
     }
