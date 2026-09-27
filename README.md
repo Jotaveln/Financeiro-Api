@@ -61,16 +61,12 @@ Com PostgreSQL disponível, crie o banco e aplique o schema:
 
 ```powershell
 dotnet restore Financeiro-Api.sln
-dotnet tool restore # se o manifest local existir
-# se necessário, instale a ferramenta local após revisar a política da máquina:
-# dotnet new tool-manifest
-# dotnet tool install dotnet-ef --version 10.0.0
-
+dotnet tool restore # restaura o manifesto local dotnet-tools.json
 dotnet ef migrations list --project backend/src/Financeiro.Infrastructure --startup-project backend/src/Financeiro.Api
 dotnet ef database update --project backend/src/Financeiro.Infrastructure --startup-project backend/src/Financeiro.Api
 ```
 
-O seed só roda quando `Seed__Enabled=true`. Use `Seed__DemoEmail` e `Seed__DemoPassword` no ambiente; não coloque credenciais reais no Git.
+O seed só roda quando `Seed__Enabled=true`. Use `Seed__Email` e `Seed__Password` no ambiente; não coloque credenciais reais no Git. O valor padrão é `false`.
 
 ## Executar backend
 
