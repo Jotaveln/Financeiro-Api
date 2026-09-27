@@ -80,7 +80,21 @@ public sealed class AuthController(UserManager<ApplicationUser> users, SignInMan
     }
 
     private async Task<AuthResponse> Issue(ApplicationUser user, CancellationToken ct) { var pair = await tokens.CreateAsync(user, ct: ct); SetRefreshCookie(pair.RefreshToken); return new(pair.AccessToken, pair.ExpiresAt, UserDto(user)); }
-    private void SetRefreshCookie(string value) => Response.Cookies.Append("refreshToken", value, new() { HttpOnly = true, Secure = !HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>().IsDevelopment(), SameSite = SameSiteMode.Strict, Expires = DateTimeOffset.UtcNow.AddDays(14), Path = "/api/v1/auth" });
+    private void SetRefreshCookie(string value)
+    {
+        var environment = HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>();
+        var sameSite = Enum.TryParse<SameSiteMode>(config["Auth:CookieSameSite"], true, out var configured)
+            ? configured
+            : environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None;
+        Response.Cookies.Append("refreshToken", value, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = !environment.IsDevelopment() || sameSite == SameSiteMode.None,
+            SameSite = sameSite,
+            Expires = DateTimeOffset.UtcNow.AddDays(14),
+            Path = "/api/v1/auth"
+        });
+    }
     private static object UserDto(ApplicationUser u) => new { u.Id, u.Name, u.Email, u.PhoneNumber };
 }
 

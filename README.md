@@ -43,6 +43,7 @@ $env:ConnectionStrings__Postgres = "Host=localhost;Port=5432;Database=financeiro
 $env:Jwt__Key = "uma-chave-local-com-mais-de-32-caracteres"
 $env:Jwt__Issuer = "Financeiro.Api"
 $env:Jwt__Audience = "Financeiro.Web"
+$env:Auth__CookieSameSite = "Lax"
 $env:Cors__Origins__0 = "http://localhost:3000"
 ```
 
