@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 public sealed class HttpCurrentUser(IHttpContextAccessor accessor) : ICurrentUser
 {
@@ -26,6 +27,23 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
     }
 }
 
+public sealed class DatabaseHealthCheck(FinanceiroDbContext db) : IHealthCheck
+{
+    public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await db.Database.CanConnectAsync(cancellationToken)
+                ? HealthCheckResult.Healthy()
+                : HealthCheckResult.Unhealthy("Não foi possível conectar ao PostgreSQL.");
+        }
+        catch (Exception exception)
+        {
+            return HealthCheckResult.Unhealthy("Não foi possível conectar ao PostgreSQL.", exception);
+        }
+    }
+}
+
 public static class SeedData
 {
     public static async Task InitializeAsync(IServiceProvider root, IConfiguration config, IHostEnvironment env)
@@ -35,7 +53,8 @@ public static class SeedData
         var db = scope.ServiceProvider.GetRequiredService<FinanceiroDbContext>();
         await db.Database.MigrateAsync();
         var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        var email = config["Seed:Email"]; var password = config["Seed:Password"];
+        var email = config["Seed:Email"] ?? config["Seed:DemoEmail"];
+        var password = config["Seed:Password"] ?? config["Seed:DemoPassword"];
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password)) return;
         var user = await users.FindByEmailAsync(email);
         if (user is null)

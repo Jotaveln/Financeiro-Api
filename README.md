@@ -35,8 +35,8 @@ Financeiro-Api/
 ## Configuração local
 
 1. Copie `.env.example` para `.env` (PowerShell: `Copy-Item .env.example .env`) e troque a senha/chave JWT.
-2. Defina as mesmas variáveis no ambiente do processo da API. O ASP.NET Core lê `ConnectionStrings__DefaultConnection`; em produção use um secret manager.
-3. A API usa `ConnectionStrings:Postgres`. Se o nome da variável usado for `ConnectionStrings__DefaultConnection`, ajuste para `ConnectionStrings__Postgres` ou defina ambos:
+2. Defina as mesmas variáveis no ambiente do processo da API. A API aceita `ConnectionStrings__Postgres` ou `ConnectionStrings__DefaultConnection`; em produção use um secret manager.
+3. Para execução local, prefira `ConnectionStrings__Postgres`:
 
 ```powershell
 $env:ConnectionStrings__Postgres = "Host=localhost;Port=5432;Database=financeiro;Username=financeiro;Password=change-me"
@@ -76,7 +76,7 @@ dotnet build Financeiro-Api.sln --configuration Debug
 dotnet run --project backend/src/Financeiro.Api --urls http://localhost:8080
 ```
 
-Swagger fica disponível em `http://localhost:8080/swagger` no ambiente Development. Health checks: `/health/live` e `/health/ready`.
+Swagger fica disponível em `http://localhost:8080/swagger` no ambiente Development. Health checks: `/health/live` (processo) e `/health/ready` (PostgreSQL).
 
 No Visual Studio, abra `Financeiro-Api.sln`, defina `Financeiro.Api` como Startup Project e configure as variáveis de ambiente do perfil de execução.
 
@@ -131,7 +131,7 @@ Senhas são gerenciadas pelo ASP.NET Identity. Refresh tokens são armazenados c
 - **Backend:** Render, Railway, Azure Container Apps/App Service ou Fly.io usando `backend/Dockerfile`; configure `ConnectionStrings__Postgres`, `Jwt__Key`, `Jwt__Issuer`, `Jwt__Audience`, `Cors__Origins__0`, `Frontend__Url` e SMTP/webhook. ASP.NET Core não deve ser forçado dentro da Vercel.
 - **Banco:** Neon, Supabase ou PostgreSQL gerenciado equivalente. Aplique migrations em pipeline controlado antes de liberar a aplicação.
 
-Passos detalhados estão em `docs/deployment.md`.
+Passos detalhados estão em `docs/deployment.md`. Backup, restore, retenção e recuperação estão em `docs/backup-recovery.md`.
 
 ## GitHub
 
@@ -149,6 +149,6 @@ Alternativa: crie o repositório vazio na interface do GitHub e execute `git rem
 - O preço de investimentos é informado manualmente; não há dependência de API paga.
 - Exportação obrigatória é CSV; Excel/PDF não fazem parte do núcleo atual.
 - O preview de importação CSV está disponível; confirme/normalize linhas conforme o contrato da API antes de persistir.
-- A integração PostgreSQL real depende de Docker ou de uma connection string externa; o teste automatizado é executado com `RUN_POSTGRES_INTEGRATION=true`.
+- A integração PostgreSQL real depende de Docker ou de uma connection string externa; o teste automatizado é executado com `RUN_POSTGRES_INTEGRATION=true`. O ambiente desta validação não tinha Docker Desktop instalado.
 - A auditoria npm atual registra vulnerabilidades transitivas em Vitest/PostCSS; a correção disponível exige upgrades breaking para Vitest 5 e Next 16, por isso não foi aplicada sem uma rodada dedicada de compatibilidade.
 - Build npm e testes E2E devem ser executados em máquina com as dependências instaladas.

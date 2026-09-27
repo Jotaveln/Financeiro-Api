@@ -11,7 +11,9 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration).Enrich.FromLogContext().WriteTo.Console());
-var connection = builder.Configuration.GetConnectionString("Postgres") ?? throw new InvalidOperationException("ConnectionStrings:Postgres não configurada.");
+var connection = builder.Configuration.GetConnectionString("Postgres")
+    ?? builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Configure ConnectionStrings:Postgres ou ConnectionStrings:DefaultConnection.");
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
 builder.Services.AddDbContext<FinanceiroDbContext>(o => o.UseNpgsql(connection));
@@ -38,7 +40,7 @@ builder.Services.AddSwaggerGen(o =>
 });
 builder.Services.AddCors(o => o.AddDefaultPolicy(p => p.WithOrigins(builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? ["http://localhost:3000"]).AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
 builder.Services.AddRateLimiter(o => { o.RejectionStatusCode = 429; o.AddPolicy("auth", c => RateLimitPartition.GetFixedWindowLimiter(c.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new() { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) })); });
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("postgresql", tags: ["ready"]);
 
 var app = builder.Build();
 app.UseExceptionHandler();
@@ -47,7 +49,7 @@ app.Use(async (ctx, next) => { ctx.Response.Headers["X-Content-Type-Options"] = 
 if (app.Environment.IsDevelopment()) { app.UseSwagger(); app.UseSwaggerUI(); }
 else { app.UseHsts(); }
 app.UseHttpsRedirection(); app.UseCors(); app.UseRateLimiter(); app.UseAuthentication(); app.UseAuthorization();
-app.MapControllers(); app.MapHealthChecks("/health/live", new() { Predicate = _ => false }); app.MapHealthChecks("/health/ready");
+app.MapControllers(); app.MapHealthChecks("/health/live", new() { Predicate = _ => false }); app.MapHealthChecks("/health/ready", new() { Predicate = check => check.Tags.Contains("ready") });
 await SeedData.InitializeAsync(app.Services, app.Configuration, app.Environment);
 app.Run();
 public partial class Program { }

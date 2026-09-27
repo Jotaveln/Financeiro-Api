@@ -13,7 +13,7 @@ O `backend/Dockerfile` publica `Financeiro.Api` em imagem ASP.NET 10 na porta 80
 - `Jwt__Key`, `Jwt__Issuer`, `Jwt__Audience`
 - `Cors__Origins__0=https://seu-frontend.vercel.app`
 - `Frontend__Url=https://seu-frontend.vercel.app`
-- `Seed__Enabled=false` em produção
+- `Seed__Enabled=false` em produção (o compose também inicia com seed desligado)
 - `Email__WebhookUrl` ou integração SMTP segura
 
 ### Render
@@ -43,6 +43,10 @@ ASP.NET Core não é hospedado diretamente na Vercel neste projeto.
 5. Adicione o domínio Vercel em `Cors__Origins__0` do backend.
 
 Cookies de refresh precisam de HTTPS e política compatível com o domínio de API. Se frontend e API forem domínios diferentes, valide `SameSite`, CORS e `AllowCredentials` no ambiente de produção.
+
+## Backup e recuperação
+
+Antes de produção, configure backup automatizado do PostgreSQL, retenção e um teste periódico de restore. Os comandos e o procedimento mínimo estão em `docs/backup-recovery.md`.
 
 ## Checklist
 

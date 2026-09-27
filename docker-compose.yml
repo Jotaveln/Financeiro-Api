@@ -22,21 +22,21 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-financeiro};Username=${POSTGRES_USER:-financeiro};Password=${POSTGRES_PASSWORD:-financeiro_local_change_me}
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB:-financeiro};Username=${POSTGRES_USER:-financeiro};Password=${POSTGRES_PASSWORD:-financeiro_local_change_me};Include Error Detail=false
       Jwt__Key: ${Jwt__Key:-development-only-key-change-before-production-123456}
       Jwt__Issuer: Financeiro.Api
       Jwt__Audience: Financeiro.Web
       Cors__Origins__0: http://localhost:3000
-      Seed__Enabled: ${Seed__Enabled:-true}
-      Seed__DemoEmail: ${Seed__DemoEmail:-demo@financeiro.local}
-      Seed__DemoPassword: ${Seed__DemoPassword:-ChangeThisDemo123!}
+      Seed__Enabled: ${Seed__Enabled:-false}
+      Seed__Email: ${Seed__Email:-}
+      Seed__Password: ${Seed__Password:-}
     ports:
       - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health/live || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health/ready || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
