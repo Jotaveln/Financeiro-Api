@@ -67,7 +67,7 @@ dotnet ef migrations list --context FinanceiroDbContext --project backend/src/Fi
 dotnet ef database update --context FinanceiroDbContext --project backend/src/Financeiro.Infrastructure/Financeiro.Infrastructure.csproj --startup-project backend/src/Financeiro.Api/Financeiro.Api.csproj
 ```
 
-O seed só roda quando `Seed__Enabled=true`. Use `Seed__Email` e `Seed__Password` no ambiente; não coloque credenciais reais no Git. O valor padrão é `false`.
+O seed só roda em Development quando `Seed__Enabled=true`. Use `Seed__Email` e `Seed__Password` no ambiente; não coloque credenciais reais no Git. O valor padrão é `false`. Para aplicar a migration sem `EnsureCreated`, habilite `Database__ApplyMigrations=true` somente durante um release controlado; a API executa `Database.MigrateAsync()` antes de aceitar requests.
 
 ## Executar backend
 
@@ -129,7 +129,7 @@ Senhas são gerenciadas pelo ASP.NET Identity. Refresh tokens são armazenados c
 ## Deploy
 
 - **Frontend:** Vercel, Root Directory `frontend`, Build `npm run build`, variável `NEXT_PUBLIC_API_URL` apontando para a API HTTPS.
-- **Backend:** Render, Railway, Azure Container Apps/App Service ou Fly.io usando `backend/Dockerfile`; configure `ConnectionStrings__Postgres`, `Jwt__Key`, `Jwt__Issuer`, `Jwt__Audience`, `Cors__Origins__0`, `Frontend__Url` e SMTP/webhook. ASP.NET Core não deve ser forçado dentro da Vercel.
+- **Backend:** Render, Railway, Azure Container Apps/App Service ou Fly.io usando `backend/Dockerfile`; configure `ASPNETCORE_ENVIRONMENT=Production`, `PORT` (Render), `ConnectionStrings__Postgres`, `Jwt__Key`, `Jwt__Issuer`, `Jwt__Audience`, `Cors__Origins__0`, `Frontend__Url`, `Auth__CookieSameSite=None`, `Database__ApplyMigrations` durante o release inicial, `Seed__Enabled=false` e SMTP/webhook. ASP.NET Core não deve ser forçado dentro da Vercel.
 - **Banco:** Neon, Supabase ou PostgreSQL gerenciado equivalente. Aplique migrations em pipeline controlado antes de liberar a aplicação.
 
 Passos detalhados estão em `docs/deployment.md`. Backup, restore, retenção e recuperação estão em `docs/backup-recovery.md`.

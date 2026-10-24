@@ -2,23 +2,30 @@
 
 ## Banco PostgreSQL
 
-Crie uma instância em Neon, Supabase ou outro PostgreSQL gerenciado com TLS. Configure `ConnectionStrings__Postgres` no backend. Execute migrations como etapa controlada de release, nunca a cada request.
+Crie uma instância PostgreSQL gerenciada com TLS (Render PostgreSQL, Neon, Supabase ou equivalente). Configure `ConnectionStrings__Postgres` no backend. A migration existente (`20260927030932_InitialCreate`) cria o schema `financeiro`, ASP.NET Identity (`AspNetUsers`, `AspNetRoles`, claims/logins/tokens), `RefreshTokens` e as entidades financeiras; não use `EnsureCreated`.
+
+### Aplicação controlada da migration
+
+A API aplica migrations somente quando `Database__ApplyMigrations=true`. No primeiro release do Render, configure temporariamente essa variável como `true`, faça o deploy e aguarde `/health/ready`. O processo executa `Database.MigrateAsync()` antes de aceitar requests; se falhar, o serviço não deve ser considerado saudável. Depois de confirmar o release, altere para `false` para que novas migrations sejam executadas por uma etapa de release controlada, e não em cada inicialização. Nunca habilite seed em produção.
 
 ## Backend em container
 
 O `backend/Dockerfile` publica `Financeiro.Api` em imagem ASP.NET 10 na porta 8080. Configure no provedor:
 
-- `ASPNETCORE_URLS=http://+:8080`
+- `ASPNETCORE_ENVIRONMENT=Production`
+- `PORT` (fornecida pelo Render; o container usa `8080` quando ausente)
 - `ConnectionStrings__Postgres`
-- `Jwt__Key`, `Jwt__Issuer`, `Jwt__Audience`
-- `Cors__Origins__0=https://seu-frontend.vercel.app`
+- `Jwt__Key` (segredo aleatório com pelo menos 32 caracteres), `Jwt__Issuer`, `Jwt__Audience`
+- `Cors__Origins__0=https://seu-frontend.vercel.app` (origem exata, sem `/` final)
 - `Frontend__Url=https://seu-frontend.vercel.app`
-- `Seed__Enabled=false` em produção (o compose também inicia com seed desligado)
+- `Auth__CookieSameSite=None` (frontend e API em domínios HTTPS diferentes)
+- `Database__ApplyMigrations=true` apenas durante o release controlado que aplica a migration; depois `false`
+- `Seed__Enabled=false` em produção
 - `Email__WebhookUrl` ou integração SMTP segura
 
 ### Render
 
-Crie Web Service tipo Docker, contexto do repositório na raiz e Dockerfile `backend/Dockerfile`. Adicione health check `/health/ready`, variáveis acima e a URL pública da API.
+Crie Web Service tipo Docker, contexto do repositório na raiz e Dockerfile `backend/Dockerfile`. O container escuta a variável `PORT` fornecida pelo Render e usa `8080` localmente. Adicione health check `/health/ready`, variáveis acima e a URL pública da API. O `/health/live` pode ser usado como probe de liveness. O backend processa `X-Forwarded-Proto` para que HTTPS terminado no proxy do Render continue correto.
 
 ### Railway
 
@@ -39,10 +46,10 @@ ASP.NET Core não é hospedado diretamente na Vercel neste projeto.
 1. Importe o repositório.
 2. Defina Root Directory como `frontend`.
 3. Build: `npm run build`; Install: `npm install`.
-4. Configure `NEXT_PUBLIC_API_URL=https://api.exemplo.com/api/v1` e `NEXT_PUBLIC_DEMO_MODE=false`.
+4. Configure `NEXT_PUBLIC_API_URL=https://financeiro-api-s3s7.onrender.com/api/v1` e `NEXT_PUBLIC_DEMO_MODE=false` (ou a URL HTTPS final do serviço Render, se ela mudar).
 5. Adicione o domínio Vercel em `Cors__Origins__0` do backend.
 
-Cookies de refresh precisam de HTTPS e política compatível com o domínio de API. Se frontend e API forem domínios diferentes, valide `SameSite`, CORS e `AllowCredentials` no ambiente de produção.
+Cookies de refresh são HttpOnly e precisam de HTTPS. Como frontend e API ficam em domínios diferentes, use `Auth__CookieSameSite=None`, CORS com a origem exata da Vercel e `AllowCredentials`; não configure um domínio amplo no cookie. O cookie de refresh é emitido pela API em `/api/v1/auth` e o frontend envia `credentials: include`. O marcador `financeiro_session` do frontend é apenas um guard de navegação e não contém credenciais.
 
 ## Backup e recuperação
 

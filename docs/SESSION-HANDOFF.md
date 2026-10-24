@@ -87,6 +87,7 @@ Financeiro-Api/
   - `/health/ready`: conexão PostgreSQL.
 - A API aceita `ConnectionStrings__Postgres` e `ConnectionStrings__DefaultConnection`.
 - O Docker Compose usa `ConnectionStrings__Postgres`.
+- `Database__ApplyMigrations=true` executa `Database.MigrateAsync()` no startup para um release controlado; `EnsureCreated` não é usado.
 
 ### Frontend
 
@@ -177,7 +178,7 @@ Implementados no backend e representados no frontend:
 
 ### Docker
 
-- `backend/Dockerfile` multi-stage com SDK/runtime .NET 10.
+- `backend/Dockerfile` multi-stage com SDK/runtime .NET 10; o processo usa `PORT` quando fornecida pelo provedor e `8080` como fallback.
 - `docker-compose.yml` com PostgreSQL 17 Alpine, API, volume persistente e health checks.
 - O Compose aguarda PostgreSQL saudável antes de iniciar a API.
 - O health check da API usa `/health/ready`.
