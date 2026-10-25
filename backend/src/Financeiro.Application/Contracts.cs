@@ -27,6 +27,7 @@ public sealed record ForgotPasswordRequest(string Email);
 public sealed record ResetPasswordRequest(string Email, string Token, string NewPassword);
 public sealed record ChangePasswordRequest(string CurrentPassword, string NewPassword);
 public sealed record UpdateProfileRequest(string Name, string? PhoneNumber);
+public sealed record UserSettingsRequest(string? Currency, string? Culture, string? DateFormat, string? Theme, decimal LowBalanceThreshold);
 public sealed record AuthResponse(string AccessToken, DateTime ExpiresAt, object User);
 public sealed record DashboardResponse(decimal Balance, decimal NetWorth, decimal MonthIncome, decimal MonthExpense, decimal MonthlyResult, decimal Investments, decimal Debts, decimal AvailableCardLimit, int Payables, int Receivables, object[] CashFlow, object[] ByCategory, object[] Recent, object[] Upcoming);
 

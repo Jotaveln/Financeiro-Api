@@ -57,6 +57,16 @@ public sealed class TokenService(IConfiguration config, FinanceiroDbContext db)
         if (token is not null && token.RevokedAt is null) { token.RevokedAt = DateTime.UtcNow; await db.SaveChangesAsync(ct); }
     }
 
+    public async Task RevokeAllAsync(Guid userId, CancellationToken ct)
+    {
+        var now = DateTime.UtcNow;
+        var active = await db.RefreshTokens.IgnoreQueryFilters()
+            .Where(x => x.UserId == userId && x.RevokedAt == null && x.ExpiresAt > now)
+            .ToListAsync(ct);
+        foreach (var token in active) token.RevokedAt = now;
+        if (active.Count != 0) await db.SaveChangesAsync(ct);
+    }
+
     private static string Hash(string value) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
 }
 

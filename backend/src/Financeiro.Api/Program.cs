@@ -20,7 +20,7 @@ var connection = builder.Configuration.GetConnectionString("Postgres")
 var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key não configurada.");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("Jwt:Issuer não configurada.");
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? throw new InvalidOperationException("Jwt:Audience não configurada.");
-if (jwtKey.Length < 32 || (!isDevelopment && jwtKey.Contains("CHANGE_ME", StringComparison.OrdinalIgnoreCase)))
+if (jwtKey.Length < 32 || (isProduction && jwtKey.Contains("CHANGE_ME", StringComparison.OrdinalIgnoreCase)))
     throw new InvalidOperationException("Jwt:Key deve ter no mínimo 32 caracteres e não pode usar o placeholder em produção.");
 var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
 var frontendUrl = builder.Configuration["Frontend:Url"];
@@ -57,14 +57,22 @@ builder.Services.AddSwaggerGen(o =>
     o.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme { Type = SecuritySchemeType.Http, Scheme = "bearer", BearerFormat = "JWT" });
 });
 builder.Services.AddCors(o => o.AddDefaultPolicy(p => p.WithOrigins(corsOrigins.Length > 0 ? corsOrigins : ["http://localhost:3000"]).AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
-builder.Services.AddRateLimiter(o => { o.RejectionStatusCode = 429; o.AddPolicy("auth", c => RateLimitPartition.GetFixedWindowLimiter(c.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new() { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) })); });
+builder.Services.AddRateLimiter(o =>
+{
+    o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    static string Partition(HttpContext context, string scope) => $"{scope}:{context.Connection.RemoteIpAddress?.ToString() ?? "unknown"}:{context.Request.Path}";
+    o.AddPolicy("auth", c => RateLimitPartition.GetFixedWindowLimiter(Partition(c, "auth"), _ => new() { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+    o.AddPolicy("search", c => RateLimitPartition.GetFixedWindowLimiter(Partition(c, "search"), _ => new() { PermitLimit = 60, Window = TimeSpan.FromMinutes(1) }));
+    o.AddPolicy("csv", c => RateLimitPartition.GetFixedWindowLimiter(Partition(c, "csv"), _ => new() { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+    o.AddPolicy("expensive", c => RateLimitPartition.GetFixedWindowLimiter(Partition(c, "expensive"), _ => new() { PermitLimit = 30, Window = TimeSpan.FromMinutes(1) }));
+});
 builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("postgresql", tags: ["ready"]);
 
 var app = builder.Build();
 app.UseForwardedHeaders(new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto });
 app.UseExceptionHandler();
 app.UseSerilogRequestLogging();
-app.Use(async (ctx, next) => { ctx.Response.Headers["X-Content-Type-Options"] = "nosniff"; ctx.Response.Headers["X-Frame-Options"] = "DENY"; ctx.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin"; await next(); });
+app.Use(async (ctx, next) => { ctx.Response.Headers["X-Content-Type-Options"] = "nosniff"; ctx.Response.Headers["X-Frame-Options"] = "DENY"; ctx.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin"; ctx.Response.Headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"; ctx.Response.Headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'; base-uri 'none'"; if (ctx.Request.Path.StartsWithSegments("/api/v1")) ctx.Response.Headers["Cache-Control"] = "no-store"; await next(); });
 if (app.Environment.IsDevelopment()) { app.UseSwagger(); app.UseSwaggerUI(); }
 else { app.UseHsts(); }
 app.UseHttpsRedirection(); app.UseCors(); app.UseRateLimiter(); app.UseAuthentication(); app.UseAuthorization();

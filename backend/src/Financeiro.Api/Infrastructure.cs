@@ -18,7 +18,7 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
     public async ValueTask<bool> TryHandleAsync(HttpContext context, Exception exception, CancellationToken ct)
     {
         logger.LogError(exception, "Erro não tratado. CorrelationId={CorrelationId}", context.TraceIdentifier);
-        var status = exception is ArgumentException or InvalidOperationException ? 400 : 500;
+        var status = exception is ArgumentException ? 400 : 500;
         var problem = new ProblemDetails { Status = status, Title = status == 400 ? "Requisição inválida" : "Erro interno", Detail = status == 400 ? exception.Message : "Ocorreu um erro inesperado.", Instance = context.Request.Path };
         problem.Extensions["traceId"] = context.TraceIdentifier;
         context.Response.StatusCode = status;
