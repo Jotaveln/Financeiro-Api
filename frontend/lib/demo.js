@@ -9,14 +9,14 @@ export const dashboardDemo = {
   upcoming: [{ title: "Fatura Nubank", dueDate: "2026-09-29", amount: 1842.45 }, { title: "Internet", dueDate: "2026-10-02", amount: 119.9 }]
 };
 export const resources = {
-  contas: [{ id: 1, nome: "Conta Principal", detalhe: "Banco Digital · Conta corrente", valor: 12480.22, status: "Ativa" }, { id: 2, nome: "Reserva", detalhe: "Poupança", valor: 5992.61, status: "Ativa" }],
-  transacoes: [{ id: 1, nome: "Supermercado", detalhe: "Alimentação · 25/09/2026", valor: -284.72, status: "Pago" }, { id: 2, nome: "Salário", detalhe: "Receita · 24/09/2026", valor: 9800, status: "Recebido" }],
-  categorias: [{ id: 1, nome: "Alimentação", detalhe: "5 lançamentos", valor: 1320, status: "Ativa" }, { id: 2, nome: "Moradia", detalhe: "3 lançamentos", valor: 2450, status: "Ativa" }],
-  cartoes: [{ id: 1, nome: "Nubank Platinum", detalhe: "Fecha dia 22 · vence dia 29", valor: 1842.45, status: "Aberta" }],
-  transferencias: [{ id: 1, nome: "Principal → Reserva", detalhe: "20/09/2026", valor: 800, status: "Concluída" }],
-  orcamentos: [{ id: 1, nome: "Alimentação", detalhe: "66% utilizado", valor: 2000, status: "No limite" }, { id: 2, nome: "Lazer", detalhe: "49% utilizado", valor: 1500, status: "Saudável" }],
-  metas: [{ id: 1, nome: "Reserva de emergência", detalhe: "R$ 24.000 de R$ 36.000", valor: 66.7, status: "Em andamento" }],
-  investimentos: [{ id: 1, nome: "Tesouro Selic 2029", detalhe: "Renda fixa · Corretora", valor: 42800, status: "+12,4%" }, { id: 2, nome: "ETF BOVA11", detalhe: "32 cotas", valor: 4190, status: "+6,8%" }],
-  dividas: [{ id: 1, nome: "Financiamento veículo", detalhe: "18 de 36 parcelas", valor: 18400, status: "Em dia" }],
-  assinaturas: [{ id: 1, nome: "Internet", detalhe: "Mensal · próxima em 02/10", valor: 119.9, status: "Ativa" }, { id: 2, nome: "Streaming", detalhe: "Mensal", valor: 39.9, status: "Ativa" }]
+  contas: [{ id: "demo-account-1", name: "Conta principal", institution: "Nubank", type: "Checking", balance: 12480.22, isActive: true }, { id: "demo-account-2", name: "Reserva", institution: "Banco do Brasil", type: "Savings", balance: 5992.61, isActive: true }],
+  transacoes: [{ id: "demo-tx-1", description: "Supermercado", date: "2026-09-25", amount: 284.72, type: "Expense", status: "Paid" }, { id: "demo-tx-2", description: "Salário", date: "2026-09-24", amount: 9800, type: "Income", status: "Paid" }],
+  categorias: [{ id: "demo-category-1", name: "Alimentação", type: "Expense", isActive: true }, { id: "demo-category-2", name: "Salário", type: "Income", isActive: true }],
+  cartoes: [{ id: "demo-card-1", name: "Cartão principal", bank: "Nubank", brand: "Mastercard", limit: 8000, Used: 1842.45, Available: 6157.55, closingDay: 22, dueDay: 29, isActive: true }],
+  transferencias: [],
+  orcamentos: [{ id: "demo-budget-1", category: "Alimentação", amount: 2000, spent: 1320, available: 680, percent: 66 }, { id: "demo-budget-2", category: "Lazer", amount: 1500, spent: 735, available: 765, percent: 49 }],
+  metas: [{ id: "demo-goal-1", name: "Reserva de emergência", currentAmount: 24000, targetAmount: 36000, percent: 66.7, isCompleted: false }],
+  investimentos: [{ id: "demo-investment-1", asset: "Tesouro Selic 2029", type: "Treasury", quantity: 1, investedAmount: 38000, currentAmount: 42800, currentPrice: 42800, broker: "XP" }, { id: "demo-investment-2", asset: "IVVB11", type: "Etf", quantity: 32, investedAmount: 3920, currentAmount: 4190, currentPrice: 130.94, broker: "BTG Pactual" }],
+  dividas: [{ id: "demo-debt-1", name: "Financiamento do veículo", principal: 22000, remaining: 18400, paidInstallments: 18, remainingInstallments: 18, nextDue: "2026-10-10" }],
+  assinaturas: [{ id: "demo-subscription-1", name: "Internet", amount: 119.9, cycle: "Monthly", nextBillingDate: "2026-10-02", isActive: true }, { id: "demo-subscription-2", name: "Streaming", amount: 39.9, cycle: "Monthly", nextBillingDate: "2026-10-08", isActive: true }]
 };

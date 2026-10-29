@@ -30,4 +30,22 @@ public sealed class DomainTests
         Assert.Equal(1000m, investment.InvestedAmount);
         Assert.Equal(1150m, investment.CurrentAmount);
     }
+
+    [Fact]
+    public void Goal_progress_never_divides_by_zero()
+    {
+        var goal = new FinancialGoal { TargetAmount = 0 };
+        Assert.Equal(0m, goal.CurrentAmount);
+    }
+
+    [Fact]
+    public void Debt_installments_keep_total_after_rounding()
+    {
+        const decimal principal = 1000m;
+        const int count = 3;
+        var installment = decimal.Round(principal / count, 2);
+        var final = principal - installment * (count - 1);
+        Assert.Equal(principal, installment + installment + final);
+        Assert.Equal(333.34m, final);
+    }
 }

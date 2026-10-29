@@ -17,8 +17,21 @@ public sealed class AccountsController(FinanceiroDbContext db, ICurrentUser curr
         return Ok(data);
     }
     [HttpGet("{id:guid}")] public async Task<IActionResult> Get(Guid id, CancellationToken ct) => await db.Accounts.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct) is { } x ? Ok(x) : NotFound();
-    [HttpPost] public async Task<IActionResult> Create(AccountRequest r, CancellationToken ct) { if (string.IsNullOrWhiteSpace(r.Name)) return BadRequest("Nome obrigatório."); var x = Map(r); x.UserId = current.UserId; db.Add(x); await db.SaveChangesAsync(ct); return CreatedAtAction(nameof(Get), new { id = x.Id }, x); }
-    [HttpPut("{id:guid}")] public async Task<IActionResult> Update(Guid id, AccountRequest r, CancellationToken ct) { var x = await db.Accounts.FindAsync([id], ct); if (x is null) return NotFound(); x.Name=r.Name; x.Institution=r.Institution; x.Type=r.Type; x.InitialBalance=r.InitialBalance; x.Color=r.Color??x.Color; x.Icon=r.Icon??x.Icon; x.IsActive=r.IsActive; await db.SaveChangesAsync(ct); return Ok(x); }
+    [HttpPost] public async Task<IActionResult> Create(AccountRequest r, CancellationToken ct)
+    {
+        if (Validate(r) is { } error) return BadRequest(error);
+        var x = Map(r); x.UserId = current.UserId;
+        db.Add(x); await db.SaveChangesAsync(ct);
+        return CreatedAtAction(nameof(Get), new { id = x.Id }, x);
+    }
+    [HttpPut("{id:guid}")] public async Task<IActionResult> Update(Guid id, AccountRequest r, CancellationToken ct)
+    {
+        var x = await db.Accounts.FindAsync([id], ct); if (x is null) return NotFound();
+        if (Validate(r) is { } error) return BadRequest(error);
+        x.Name=r.Name.Trim(); x.Institution=string.IsNullOrWhiteSpace(r.Institution) ? null : r.Institution.Trim(); x.Type=r.Type; x.InitialBalance=r.InitialBalance; x.Color=r.Color??x.Color; x.Icon=r.Icon??x.Icon; x.IsActive=r.IsActive;
+        await db.SaveChangesAsync(ct); return Ok(x);
+    }
+    private static string? Validate(AccountRequest r) => string.IsNullOrWhiteSpace(r.Name) ? "Nome obrigatório." : r.Name.Trim().Length > 120 ? "Nome deve ter no máximo 120 caracteres." : r.InitialBalance < 0 ? "Saldo inicial não pode ser negativo." : r.Institution?.Trim().Length > 120 ? "Instituição deve ter no máximo 120 caracteres." : null;
     [HttpDelete("{id:guid}")] public async Task<IActionResult> Delete(Guid id, CancellationToken ct) { var x = await db.Accounts.Include(a => a.Transactions).SingleOrDefaultAsync(a => a.Id == id, ct); if (x is null) return NotFound(); if (x.Transactions.Count != 0) { x.IsActive=false; await db.SaveChangesAsync(ct); return NoContent(); } db.Remove(x); await db.SaveChangesAsync(ct); return NoContent(); }
     private static Account Map(AccountRequest r) => new() { Name=r.Name.Trim(), Institution=r.Institution, Type=r.Type, InitialBalance=r.InitialBalance, Color=r.Color??"#2563EB", Icon=r.Icon??"wallet", IsActive=r.IsActive };
 }
@@ -46,7 +59,7 @@ public sealed class TransactionsController(FinanceiroDbContext db, ICurrentUser 
     [HttpPost] public async Task<IActionResult> Create(TransactionRequest r,CancellationToken ct){var validation=await Validate(r,ct);if(validation is not null)return BadRequest(validation);var count=r.Recurrence is RecurrenceType.Monthly or RecurrenceType.Installment?Math.Clamp(r.Occurrences,1,120):1;var key=count>1?Guid.NewGuid().ToString("N"):null;var list=new List<Transaction>();for(var i=0;i<count;i++){var amount=count>1&&r.Recurrence==RecurrenceType.Installment?decimal.Round(r.Amount/count,2):r.Amount;list.Add(new(){UserId=current.UserId,Description=count>1?$"{r.Description} ({i+1}/{count})":r.Description,Amount=amount,Type=r.Type,Status=i==0?r.Status:TransactionStatus.Pending,Date=r.Date.AddMonths(i),DueDate=r.DueDate?.AddMonths(i),PaidAt=i==0?r.PaidAt:null,AccountId=r.AccountId,CategoryId=r.CategoryId,Notes=r.Notes,Tags=r.Tags,Recurrence=r.Recurrence,RecurrenceKey=key});}db.AddRange(list);await db.SaveChangesAsync(ct);return CreatedAtAction(nameof(Get),new{id=list[0].Id},list);}
     [HttpPut("{id:guid}")] public async Task<IActionResult> Update(Guid id,TransactionRequest r,CancellationToken ct){var x=await db.Transactions.FindAsync([id],ct);if(x is null)return NotFound();if(await Validate(r,ct) is{}error)return BadRequest(error);x.Description=r.Description;x.Amount=r.Amount;x.Type=r.Type;x.Status=r.Status;x.Date=r.Date;x.DueDate=r.DueDate;x.PaidAt=r.PaidAt;x.AccountId=r.AccountId;x.CategoryId=r.CategoryId;x.Notes=r.Notes;x.Tags=r.Tags;await db.SaveChangesAsync(ct);return Ok(x);}
     [HttpDelete("{id:guid}")] public async Task<IActionResult> Delete(Guid id,CancellationToken ct){var x=await db.Transactions.FindAsync([id],ct);if(x is null)return NotFound();if(x.TransferId is not null)return Conflict("Exclua a transferência vinculada.");db.Remove(x);await db.SaveChangesAsync(ct);return NoContent();}
-    private async Task<string?> Validate(TransactionRequest r,CancellationToken ct){if(r.Amount<=0)return"Valor deve ser positivo.";if(!await db.Accounts.AnyAsync(x=>x.Id==r.AccountId&&x.IsActive,ct))return"Conta inválida.";if(r.CategoryId is not null&&!await db.Categories.AnyAsync(x=>x.Id==r.CategoryId&&x.Type==r.Type,ct))return"Categoria inválida.";return null;}
+    private async Task<string?> Validate(TransactionRequest r,CancellationToken ct){if(string.IsNullOrWhiteSpace(r.Description)||r.Description.Trim().Length>200)return"Descrição obrigatória com no máximo 200 caracteres.";if(r.Amount<=0)return"Valor deve ser positivo.";if(!await db.Accounts.AnyAsync(x=>x.Id==r.AccountId&&x.IsActive,ct))return"Conta inválida.";if(r.CategoryId is not null&&!await db.Categories.AnyAsync(x=>x.Id==r.CategoryId&&x.Type==r.Type&&x.IsActive,ct))return"Categoria inválida.";if(r.DueDate is not null&&r.DueDate<r.Date)return"Vencimento não pode ser anterior à data.";if(r.PaidAt is not null&&r.PaidAt<r.Date)return"Pagamento não pode ser anterior à data.";return null;}
 }
 
 [ApiController, Authorize, Route("api/v1/transfers")]

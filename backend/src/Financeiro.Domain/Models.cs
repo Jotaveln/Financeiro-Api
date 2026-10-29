@@ -6,10 +6,11 @@ public enum TransactionStatus { Pending, Paid, Overdue, Cancelled }
 public enum RecurrenceType { None, Monthly, Weekly, Yearly, Installment }
 public enum CardBrand { Visa, Mastercard, Elo, Amex, Hipercard, Other }
 public enum InvoiceStatus { Open, Closed, Paid, Overdue }
-public enum InvestmentType { FixedIncome, Treasury, Cdb, LciLca, Stock, Fii, Etf, Fund, Crypto, Other }
+// Keep existing member order stable because enum values are persisted as integers.
+public enum InvestmentType { FixedIncome, Treasury, Cdb, LciLca, Stock, Fii, Etf, Fund, Crypto, Other, Debenture, Savings, Bdr, Pension }
 public enum DebtType { Financing, Loan, Personal, Installment }
 public enum NotificationType { DueDate, Invoice, Budget, Goal, LowBalance }
-public enum SubscriptionCycle { Monthly, Annual }
+public enum SubscriptionCycle { Monthly, Annual, Weekly, Quarterly, Semiannual }
 
 public abstract class Entity
 {

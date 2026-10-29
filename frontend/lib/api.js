@@ -11,7 +11,7 @@ export async function api(path, options = {}, retry = true) {
   if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
   const response = await fetch(`${BASE}${path}`, { ...options, headers, credentials: "include" });
   if (response.status === 401 && retry && !path.startsWith("/auth/")) { await refresh(); return api(path, options, false); }
-  if (!response.ok) { const problem = await response.json().catch(() => ({})); throw new Error(problem.detail || problem.title || "Não foi possível concluir a operação"); }
+  if (!response.ok) { const problem = await response.json().catch(() => ({})); const fields = problem.errors ? Object.values(problem.errors).flat().join(" ") : ""; throw new Error(fields || problem.detail || problem.title || "Não foi possível concluir a operação"); }
   if (response.status === 204) return null;
   return response.json();
 }
