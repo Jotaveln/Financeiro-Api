@@ -1,3 +1,4 @@
+import React from "react";
 import { Inbox, RefreshCw } from "lucide-react";
 export function LoadingState(){return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true" aria-label="Carregando conteúdo">{[1,2,3].map(x=><div key={x} className="card h-36 animate-pulse bg-[var(--surface-2)]"/> )}</div>}
 export function EmptyState({title="Nenhum item encontrado",description="Crie o primeiro registro para começar."}){return <div className="card grid place-items-center p-12 text-center"><Inbox size={35} className="mb-3 text-[var(--muted)]" aria-hidden="true"/><h3 className="font-bold">{title}</h3><p className="muted mt-1 text-sm">{description}</p></div>}

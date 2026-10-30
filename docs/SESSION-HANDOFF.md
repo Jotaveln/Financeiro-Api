@@ -204,16 +204,25 @@ A estratégia mínima de backup, restore, retenção e recuperação está em `d
 
 ## 3. Estado atual real
 
+### Rodada final da Fase 4 — 29/10/2026
+
+- Contratos de dívida, cartão, compra, parcela, pagamento e notification foram explicitados nas respostas críticas; o JSON segue camelCase pelo serializer padrão.
+- `DashboardUpcoming` ficou limitado a eventos financeiros reais não pagos dos próximos 30 dias e no máximo 20 itens, com ordenação determinística.
+- Pagamentos de fatura/parcela permanecem em transação serializável com revalidação e conflito para repetição; `DebtInstallment` continua sem `PaymentTransactionId`.
+- Notifications agora retornam envelope `{ items }` e os testes frontend cobrem unread inicial, loading, vazio, erro/retry e falha de marcação sem falso sucesso.
+- Foram executados nesta rodada: build Release backend (0 erros/0 warnings), 16 unitários backend aprovados, 37 testes frontend aprovados em 9 arquivos, lint frontend com 0 erros e 2 warnings preexistentes, build frontend com 21 rotas e `git diff --check` sem erros.
+- A suíte de integração permaneceu bloqueada por ausência de `TEST_CONNECTION_STRING`; nenhuma `ConnectionStrings__Postgres`, produção, migration ou E2E foi usada.
+
 ### Funcionando/verificado
 
 - Solution e projetos compilam em Release.
 - Backend build final: 0 erros e 0 warnings.
-- Testes unitários: 3 aprovados.
-- Suíte padrão de backend: 4 aprovados no total; o teste de integração PostgreSQL fica condicionado e, sem a variável de execução real, retorna sem iniciar container.
+- Testes unitários: 16 aprovados.
+- Suíte completa de backend: 16 unitários aprovados; 4 testes de integração bloqueados por `TEST_CONNECTION_STRING` ausente, sem acessar outro banco.
 - Frontend `npm install`: concluído.
 - Frontend lint: concluído com 0 erros e 2 warnings estilísticos não bloqueantes em `eslint.config.mjs` e `postcss.config.mjs`.
-- Frontend tests: 17 aprovados em 5 arquivos.
-- Frontend build: validado anteriormente com 21 rotas estáticas; deve ser repetido após as alterações atuais.
+- Frontend tests: 37 aprovados em 9 arquivos.
+- Frontend build: validado após as alterações atuais, com 21 rotas estáticas.
 - API iniciada localmente sem banco: `/health/live` retornou HTTP 200.
 - Swagger em Development retornou HTTP 200.
 - Migration foi descoberta pelo EF.

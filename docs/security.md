@@ -19,6 +19,7 @@ Essa é uma defesa em profundidade de aplicação. PostgreSQL RLS não está hab
 - Troca de senha revoga os refresh tokens ativos do usuário. Reset de senha deve receber o mesmo tratamento antes de ser considerado concluído em produção.
 - Lockout do Identity limita tentativas consecutivas de senha. Rate limiting por IP é aplicado ao controller de autenticação; endpoints caros devem manter limites específicos antes do release.
 - Respostas de recuperação de senha são genéricas para reduzir enumeração de contas. Tokens, senhas, cookies e cabeçalhos de autorização não devem ser registrados.
+- Pagamentos de fatura e parcela usam transação serializável, revalidam o estado e retornam conflito quando o item já está pago. A proteção semântica existe nesta fase, mas a ausência de uma coluna de versão deixa conflitos extremos dependentes do isolamento/constraints do banco; `DebtInstallment` permanece sem `PaymentTransactionId`.
 
 ## CSRF, CORS e headers
 

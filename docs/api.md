@@ -28,13 +28,13 @@ Rotas privadas exigem `Authorization: Bearer <token>`. O refresh token é prefer
 - `/budgets`: orçamento por categoria/mês/ano com gasto, disponível e percentual.
 - `/goals`: metas e `POST /goals/{id}/contributions`.
 - `/investments`: posições e rentabilidade calculada a partir do preço informado.
-- `/debts`: dívida com cronograma de parcelas, pago/restante e próximo vencimento; pagamento de parcela em `/debts/{id}/installments/{installmentId}/pay` retorna o `transactionId`, mas a associação durável parcela → transação ainda não é persistida.
+- `/debts`: dívida com cronograma de parcelas, pago/restante, progresso e próximo vencimento; pagamento de parcela em `/debts/{id}/installments/{installmentId}/pay` retorna o `transactionId`, mas a associação durável parcela → transação ainda não é persistida nesta fase.
 - `/subscriptions`: recorrências semanais, mensais, trimestrais, semestrais e anuais; a próxima cobrança é derivada e não cria transações automaticamente.
-- `/dashboard`: KPIs, fluxo de caixa, categorias, recentes e próximos vencimentos.
+- `/dashboard`: KPIs, fluxo de caixa, categorias, recentes e até 20 próximos eventos financeiros não pagos nos 30 dias seguintes: transações com vencimento, vencimentos de fatura, parcelas de dívida e próxima cobrança de assinatura. A ordenação é por data, tipo, título e ID de origem.
 - `/reports/summary`: receita/despesa mensal, categorias e cartões em intervalo; aceita `accountId` opcional e valida ownership.
 - `/calendar`: eventos derivados de transações, fechamento e vencimento de faturas, parcelas de dívidas e cobranças de assinaturas.
 - `/search?q=`: busca global limitada.
-- `/notifications`: listagem, geração idempotente de avisos internos próximos do vencimento/limite e marcação como lida.
+- `/notifications`: listagem em envelope `{ items, page, pageSize, total, totalPages }`, geração idempotente por `UniqueKey` de avisos internos de fatura, parcela, assinatura, orçamento e meta, e marcação como lida.
 - `/import-export/transactions.csv`: exportação CSV pt-BR.
 - `/import-export/transactions/preview`: preview de upload CSV (limite 5 MB).
 

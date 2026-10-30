@@ -117,7 +117,7 @@ Todas as rotas privadas usam `Authorization: Bearer <access_token>` e começam p
 - `GET/PUT /users/me`, `POST /users/change-password`, `PUT /users/settings`.
 - CRUD: `/accounts`, `/categories`, `/transactions`, `/credit-cards`, `/budgets`, `/goals`, `/investments`, `/debts`, `/subscriptions`.
 - Fluxos: `POST /transfers`, `POST /credit-cards/{id}/purchases`, `GET /credit-cards/{id}/invoices`, `POST /credit-cards/invoices/{id}/pay`, `POST /goals/{id}/contributions`.
-- Análise: `GET /dashboard`, `/reports/summary`, `/search`, `/notifications`.
+- Análise: `GET /dashboard`, `/reports/summary`, `/search`, `/notifications`; o dashboard lista até 20 próximos eventos financeiros reais e notifications usam geração idempotente.
 - CSV: `GET /import-export/transactions.csv`, `POST /import-export/transactions/preview`.
 
 Detalhes, corpos JSON e respostas devem ser consultados no Swagger ou em `docs/api.md`.
@@ -150,6 +150,6 @@ Alternativa: crie o repositório vazio na interface do GitHub e execute `git rem
 - O preço de investimentos é informado manualmente; não há dependência de API paga.
 - Exportação obrigatória é CSV; Excel/PDF não fazem parte do núcleo atual.
 - O preview de importação CSV está disponível; confirme/normalize linhas conforme o contrato da API antes de persistir.
-- A integração PostgreSQL real depende de Docker ou de uma `TEST_CONNECTION_STRING` de teste explicitamente autorizada; sem essa variável a suíte é bloqueada, e não há conexão de produção alternativa.
+- A integração PostgreSQL real depende de Docker ou de uma `TEST_CONNECTION_STRING` de teste explicitamente autorizada; sem essa variável a suíte é bloqueada, e não há conexão de produção alternativa. Esta rodada não aplicou migration, não validou produção e não executou E2E.
 - A auditoria npm atual registra vulnerabilidades transitivas em Vitest/PostCSS; a correção disponível exige upgrades breaking para Vitest 5 e Next 16, por isso não foi aplicada sem uma rodada dedicada de compatibilidade.
 - Build npm e testes E2E devem ser executados em máquina com as dependências instaladas.
