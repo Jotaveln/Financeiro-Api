@@ -185,6 +185,14 @@ describe("relatórios — comportamento", () => {
     expect(screen.getByRole("option", { name: "Todas as contas" })).toBeInTheDocument();
   });
 
+  it("protege a renderização quando o relatório vem nulo, PascalCase ou sem monthly", async () => {
+    state.queryState["accounts:reports"] = { data: { Items: [{ Id: "account-1", Name: "Conta principal" }] }, isLoading: false, isError: false, refetch: state.refetch };
+    state.api.mockResolvedValue({ Monthly: [{ Month: "Out", Income: "100", Expense: null }] });
+    render(React.createElement(ReportsPage));
+    await waitFor(() => expect(screen.getByText("Out")).toBeInTheDocument());
+    expect(screen.getByRole("option", { name: "Conta principal" })).toBeInTheDocument();
+  });
+
   it("mostra erro de contas e permite retry do relatório", async () => {
     state.queryState["accounts:reports"] = { data: [], isLoading: false, isError: true, refetch: state.refetch };
     render(React.createElement(ReportsPage));
