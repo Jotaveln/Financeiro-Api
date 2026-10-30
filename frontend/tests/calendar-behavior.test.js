@@ -29,6 +29,9 @@ vi.mock("@tanstack/react-query", () => ({
 vi.mock("recharts", () => {
   const Chart = ({ children }) => React.createElement("div", null, children);
   const Leaf = () => null;
+  const Tooltip = ({ formatter }) => formatter
+    ? React.createElement("span", { "data-testid": "tooltip-values" }, formatter(1200, "Receitas"), " | ", formatter(450, "Despesas"))
+    : null;
   return {
     ResponsiveContainer: Chart,
     BarChart: Chart,
@@ -36,7 +39,7 @@ vi.mock("recharts", () => {
     CartesianGrid: Leaf,
     XAxis: Leaf,
     YAxis: Leaf,
-    Tooltip: Leaf,
+    Tooltip,
     Legend: Leaf
   };
 });
@@ -157,6 +160,13 @@ describe("relatórios — comportamento", () => {
       "accounts:reports": { data: accounts, isLoading: false, isError: false, refetch: state.refetch }
     };
     state.api.mockResolvedValue(report);
+  });
+
+  it("mantém o formatter do gráfico seguro quando o Recharts envia o nome da série", async () => {
+    render(React.createElement(ReportsPage));
+    await waitFor(() => expect(screen.getByText("Receita x despesa")).toBeInTheDocument());
+    expect(screen.getByTestId("tooltip-values")).toHaveTextContent(/R\$\s?1\.200,00/);
+    expect(screen.getByTestId("tooltip-values")).toHaveTextContent(/R\$\s?450,00/);
   });
 
   it("envia from, to e accountId, mostra resumo, gráfico e tabela", async () => {
