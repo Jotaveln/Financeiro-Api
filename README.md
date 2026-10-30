@@ -150,6 +150,6 @@ Alternativa: crie o repositório vazio na interface do GitHub e execute `git rem
 - O preço de investimentos é informado manualmente; não há dependência de API paga.
 - Exportação obrigatória é CSV; Excel/PDF não fazem parte do núcleo atual.
 - O preview de importação CSV está disponível; confirme/normalize linhas conforme o contrato da API antes de persistir.
-- A integração PostgreSQL real depende de Docker ou de uma connection string externa; o teste automatizado é executado com `RUN_POSTGRES_INTEGRATION=true`. O ambiente desta validação não tinha Docker Desktop instalado.
+- A integração PostgreSQL real depende de Docker ou de uma `TEST_CONNECTION_STRING` de teste explicitamente autorizada; sem essa variável a suíte é bloqueada, e não há conexão de produção alternativa.
 - A auditoria npm atual registra vulnerabilidades transitivas em Vitest/PostCSS; a correção disponível exige upgrades breaking para Vitest 5 e Next 16, por isso não foi aplicada sem uma rodada dedicada de compatibilidade.
 - Build npm e testes E2E devem ser executados em máquina com as dependências instaladas.

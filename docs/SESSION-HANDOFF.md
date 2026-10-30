@@ -1,6 +1,6 @@
 # SESSION HANDOFF — Financeiro-Api
 
-Data da verificação: 27/09/2026
+Data da verificação: 29/10/2026
 Diretório do projeto: `C:\Users\vitor\Financeiro-Api`
 
 Este arquivo registra o estado real verificado no filesystem e no Git para que outra sessão possa continuar sem depender do histórico desta conversa.
@@ -212,8 +212,8 @@ A estratégia mínima de backup, restore, retenção e recuperação está em `d
 - Suíte padrão de backend: 4 aprovados no total; o teste de integração PostgreSQL fica condicionado e, sem a variável de execução real, retorna sem iniciar container.
 - Frontend `npm install`: concluído.
 - Frontend lint: concluído com 0 erros e 2 warnings estilísticos não bloqueantes em `eslint.config.mjs` e `postcss.config.mjs`.
-- Frontend tests: 3 aprovados.
-- Frontend build: concluído com 21 rotas estáticas.
+- Frontend tests: 17 aprovados em 5 arquivos.
+- Frontend build: validado anteriormente com 21 rotas estáticas; deve ser repetido após as alterações atuais.
 - API iniciada localmente sem banco: `/health/live` retornou HTTP 200.
 - Swagger em Development retornou HTTP 200.
 - Migration foi descoberta pelo EF.
@@ -683,7 +683,7 @@ A API ficará em `http://localhost:8080` e o PostgreSQL em `localhost:5432`. O C
 - O preço de investimentos é informado manualmente; não há cotação externa.
 - Exportação obrigatória é CSV; Excel/PDF não fazem parte do núcleo.
 - O preview de importação CSV existe; confirmação/persistência completa das linhas ainda não está implementada como fluxo completo.
-- Calendário e configurações têm telas funcionais/parcialmente conectadas, mas ainda precisam de validação real de todas as interações.
+- Calendário possui eventos derivados da API e fixtures no modo demo; a validação visual/browser das interações ainda não foi executada.
 - Swagger fica habilitado em Development; avaliar proteção explícita ou desativação em produção.
 - Não houve deploy real.
 - Não houve ação no GitHub.

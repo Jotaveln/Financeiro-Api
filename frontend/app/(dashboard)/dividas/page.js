@@ -1,2 +1,5 @@
-import { ResourcePage } from "@/components/resource-page";
-export default function Page(){return <ResourcePage resource="dividas"/>}
+import { DebtPage } from "@/components/debt-page";
+
+export default function Page() {
+  return <DebtPage />;
+}

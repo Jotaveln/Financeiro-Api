@@ -28,12 +28,13 @@ Rotas privadas exigem `Authorization: Bearer <token>`. O refresh token é prefer
 - `/budgets`: orçamento por categoria/mês/ano com gasto, disponível e percentual.
 - `/goals`: metas e `POST /goals/{id}/contributions`.
 - `/investments`: posições e rentabilidade calculada a partir do preço informado.
-- `/debts`: dívida com cronograma de parcelas, pago/restante e próximo vencimento.
-- `/subscriptions`: recorrências mensais/anuais.
+- `/debts`: dívida com cronograma de parcelas, pago/restante e próximo vencimento; pagamento de parcela em `/debts/{id}/installments/{installmentId}/pay` retorna o `transactionId`, mas a associação durável parcela → transação ainda não é persistida.
+- `/subscriptions`: recorrências semanais, mensais, trimestrais, semestrais e anuais; a próxima cobrança é derivada e não cria transações automaticamente.
 - `/dashboard`: KPIs, fluxo de caixa, categorias, recentes e próximos vencimentos.
-- `/reports/summary`: receita/despesa mensal, categorias e cartões em intervalo.
+- `/reports/summary`: receita/despesa mensal, categorias e cartões em intervalo; aceita `accountId` opcional e valida ownership.
+- `/calendar`: eventos derivados de transações, fechamento e vencimento de faturas, parcelas de dívidas e cobranças de assinaturas.
 - `/search?q=`: busca global limitada.
-- `/notifications`: listagem e marcação como lida.
+- `/notifications`: listagem, geração idempotente de avisos internos próximos do vencimento/limite e marcação como lida.
 - `/import-export/transactions.csv`: exportação CSV pt-BR.
 - `/import-export/transactions/preview`: preview de upload CSV (limite 5 MB).
 

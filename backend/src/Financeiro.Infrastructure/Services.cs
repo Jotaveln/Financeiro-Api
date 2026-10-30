@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Net.Http.Json;
+using System.Data;
 using Financeiro.Application;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -31,8 +32,9 @@ public sealed class TokenService(IConfiguration config, FinanceiroDbContext db)
     public async Task<(ApplicationUser User, TokenPair Tokens)?> RotateAsync(string raw, CancellationToken ct)
     {
         var hash = Hash(raw);
+        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
         var existing = await db.RefreshTokens.IgnoreQueryFilters().Include(x => x.User).SingleOrDefaultAsync(x => x.TokenHash == hash, ct);
-        if (existing is null) return null;
+        if (existing is null) { await tx.RollbackAsync(ct); return null; }
         if (!existing.IsActive)
         {
             if (existing.RevokedAt is not null)
@@ -41,12 +43,14 @@ public sealed class TokenService(IConfiguration config, FinanceiroDbContext db)
                 foreach (var token in family) token.RevokedAt = DateTime.UtcNow;
                 await db.SaveChangesAsync(ct);
             }
+            await tx.RollbackAsync(ct);
             return null;
         }
         existing.RevokedAt = DateTime.UtcNow;
         var result = await CreateAsync(existing.User!, existing.Family, ct);
         existing.ReplacedByHash = Hash(result.RefreshToken);
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
         return (existing.User!, result);
     }
 

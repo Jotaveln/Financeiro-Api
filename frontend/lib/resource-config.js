@@ -114,7 +114,7 @@ export const resourceConfig = {
     schema: z.object({ name: text("Informe o credor ou descrição"), type: z.string(), principal: positiveMoney, interestRate: nonNegativeMoney, installmentCount: z.coerce.number().int().min(1, "Informe ao menos uma parcela").max(600, "Use no máximo 600 parcelas"), startDate: date }),
     defaults: { name: "", type: "Financing", principal: 0, interestRate: 0, installmentCount: 1, startDate: new Date().toISOString().slice(0, 10) },
     fields: [{ name: "name", label: "Credor ou descrição", placeholder: "Ex.: Financiamento do veículo" }, { name: "type", label: "Tipo", type: "select", options: debtTypes }, { name: "principal", label: "Valor total (R$)", type: "number", min: 0.01, step: "0.01" }, { name: "interestRate", label: "Taxa mensal informativa (%)", type: "number", min: 0, step: "0.01" }, { name: "installmentCount", label: "Número de parcelas", type: "number", min: 1, max: 600 }, { name: "startDate", label: "Data de início", type: "date" }],
-    help: "A taxa é registrada como referência; o cronograma atual não simula amortização de juros.",
+    help: "A taxa é apenas informativa e o cronograma atual não simula amortização de juros.",
     columns: [["name", "Dívida"], ["installmentCount", "Parcelas"], ["remaining", "Saldo restante"], ["nextDue", "Próximo vencimento"]],
     payload: (v) => ({ ...v, principal: Number(v.principal), interestRate: Number(v.interestRate), installmentCount: Number(v.installmentCount) }),
   },
