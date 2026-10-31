@@ -39,3 +39,5 @@ PostgreSQL (Neon, Supabase ou equivalente)
 - Vercel hospeda apenas o frontend e recebe `NEXT_PUBLIC_API_URL`.
 - Valores monetários usam `decimal`; datas financeiras usam `DateOnly`.
 - Dados demonstrativos só são criados com `Seed__Enabled=true` e credenciais fornecidas por ambiente.
+- O modo demo do frontend é opt-in e as operações mutáveis exibem que alterações não são persistidas; fora do demo, configurações usam os endpoints reais de perfil/preferências/senha.
+- O frontend possui error boundary e loading boundary no segmento autenticado; o modal mantém foco, Escape e semântica de diálogo.

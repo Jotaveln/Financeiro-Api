@@ -5,6 +5,7 @@ import { CalendarPage, ReportsPage } from "@/components/analysis-pages";
 
 const state = vi.hoisted(() => ({
   api: vi.fn(),
+  downloadFile: vi.fn(),
   refetch: vi.fn(),
   demoMode: false,
   queryState: {},
@@ -12,7 +13,7 @@ const state = vi.hoisted(() => ({
   open: vi.fn()
 }));
 
-vi.mock("@/lib/api", () => ({ api: (...args) => state.api(...args) }));
+vi.mock("@/lib/api", () => ({ api: (...args) => state.api(...args), downloadFile: (...args) => state.downloadFile(...args) }));
 vi.mock("@/lib/demo", () => ({
   get demoEnabled() { return state.demoMode; },
   dashboardDemo: {
@@ -66,6 +67,7 @@ function setCalendarQuery(overrides = {}) {
 beforeEach(() => {
   cleanup();
   state.api.mockReset();
+  state.downloadFile.mockReset();
   state.refetch.mockReset();
   state.queryConfigs = [];
   state.queryState = {};
@@ -160,6 +162,7 @@ describe("relatórios — comportamento", () => {
       "accounts:reports": { data: accounts, isLoading: false, isError: false, refetch: state.refetch }
     };
     state.api.mockResolvedValue(report);
+    state.downloadFile.mockResolvedValue(undefined);
   });
 
   it("mantém o formatter do gráfico seguro quando o Recharts envia o nome da série", async () => {
@@ -190,8 +193,8 @@ describe("relatórios — comportamento", () => {
     fireEvent.change(screen.getByLabelText("De"), { target: { value: "2026-02-01" } });
     fireEvent.change(screen.getByLabelText("Até"), { target: { value: "2026-02-28" } });
     fireEvent.click(screen.getByRole("button", { name: /Exportar CSV/ }));
-    expect(state.open).toHaveBeenCalledWith(expect.stringContaining("from=2026-02-01"), "_blank");
-    expect(state.open).toHaveBeenCalledWith(expect.stringContaining("to=2026-02-28"), "_blank");
+    expect(state.downloadFile).toHaveBeenCalledWith(expect.stringContaining("from=2026-02-01"));
+    expect(state.downloadFile).toHaveBeenCalledWith(expect.stringContaining("to=2026-02-28"));
     expect(screen.getByRole("option", { name: "Todas as contas" })).toBeInTheDocument();
   });
 

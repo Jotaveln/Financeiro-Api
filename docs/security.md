@@ -16,7 +16,7 @@ Essa é uma defesa em profundidade de aplicação. PostgreSQL RLS não está hab
 - Refresh tokens são aleatórios, opacos para o cliente, armazenados somente como hash SHA-256, rotacionados por família e revogados quando reutilizados.
 - Refresh cookie é HttpOnly, Secure em produção, com SameSite configurável e escopo `/api/v1/auth`.
 - Logout exige o usuário do JWT para revogar o token; um token de outro usuário não pode ser revogado pela sessão atual.
-- Troca de senha revoga os refresh tokens ativos do usuário. Reset de senha deve receber o mesmo tratamento antes de ser considerado concluído em produção.
+- Troca de senha revoga os refresh tokens ativos do usuário; a interface informa esse resultado ao usuário. Reset de senha deve receber o mesmo tratamento antes de ser considerado concluído em produção.
 - Lockout do Identity limita tentativas consecutivas de senha. Rate limiting por IP é aplicado ao controller de autenticação; endpoints caros devem manter limites específicos antes do release.
 - Respostas de recuperação de senha são genéricas para reduzir enumeração de contas. Tokens, senhas, cookies e cabeçalhos de autorização não devem ser registrados.
 - Pagamentos de fatura e parcela usam transação serializável, revalidam o estado e retornam conflito quando o item já está pago. A proteção semântica existe nesta fase, mas a ausência de uma coluna de versão deixa conflitos extremos dependentes do isolamento/constraints do banco; `DebtInstallment` permanece sem `PaymentTransactionId`.
@@ -43,7 +43,9 @@ A suíte de integração PostgreSQL deve criar User A e User B e testar leitura,
 
 A implementação ainda depende de testes de integração reais para confirmar todos os caminhos e constraints no PostgreSQL. A proteção CSRF por origem agora aceita uma origem configurada ou, quando Origin não é enviado, um Referer cuja autoridade corresponde exatamente a uma origem configurada; requisições com cookie sem ambos são rejeitadas. A lista de origens de produção deve ser HTTPS e conter exatamente a origem pública da Vercel.
 
-Preview CSV é limitado a 5 MiB, 100 registros, 50 campos por registro e 4096 caracteres por campo; conteúdo malformado e tipos não CSV são rejeitados. Search, CSV, dashboard e reports possuem políticas de rate limit separadas. A exportação ainda deve ser revisada para escapar campos iniciados por `=`, `+`, `-` e `@` antes de abrir em planilhas.
+Preview CSV é limitado a 5 MiB, 100 registros, 50 campos por registro e 4096 caracteres por campo; conteúdo malformado e tipos não CSV são rejeitados. O preview não persiste transações e não há confirmação de importação nesta fase. Search, CSV, dashboard e reports possuem políticas de rate limit separadas. A exportação ainda deve ser revisada para escapar campos iniciados por `=`, `+`, `-` e `@` antes de abrir em planilhas.
+
+Preferências granulares de notificações não são persistidas porque `UserSettings` não possui campos correspondentes. A exportação CSV é uma rota protegida; o frontend envia Bearer, faz uma tentativa de refresh após `401` e baixa a resposta como `Blob`.
 
 A migration `20260927030932_InitialCreate` existe no repositório e foi compilada, mas não foi aplicada nem verificada em um banco PostgreSQL nesta execução.
 

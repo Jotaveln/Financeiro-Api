@@ -14,7 +14,7 @@ Base local: `http://localhost:8080/api/v1`. Swagger: `/swagger` em Development. 
 | POST | `/auth/reset-password` | Confirma nova senha |
 | GET/PUT | `/users/me` | Perfil |
 | POST | `/users/change-password` | Alteração de senha |
-| PUT | `/users/settings` | Moeda, locale, tema e limite de saldo |
+| PUT | `/users/settings` | Moeda, cultura, formato de data, tema e limite de saldo |
 
 Rotas privadas exigem `Authorization: Bearer <token>`. O refresh token é preferencialmente cookie `HttpOnly`.
 
@@ -35,8 +35,10 @@ Rotas privadas exigem `Authorization: Bearer <token>`. O refresh token é prefer
 - `/calendar`: eventos derivados de transações, fechamento e vencimento de faturas, parcelas de dívidas e cobranças de assinaturas.
 - `/search?q=`: busca global limitada.
 - `/notifications`: listagem em envelope `{ items, page, pageSize, total, totalPages }`, geração idempotente por `UniqueKey` de avisos internos de fatura, parcela, assinatura, orçamento e meta, e marcação como lida.
-- `/import-export/transactions.csv`: exportação CSV pt-BR.
-- `/import-export/transactions/preview`: preview de upload CSV (limite 5 MB).
+- `/import-export/transactions.csv`: exportação CSV pt-BR protegida; o frontend envia Bearer, tenta refresh uma vez após `401`, respeita `Content-Disposition` e baixa via `Blob`.
+- `/import-export/transactions/preview`: preview de upload CSV (limite 5 MB). O endpoint não persiste transações e não existe endpoint de confirmação nesta fase.
+
+As preferências granulares de notificações não são persistidas porque não há campos correspondentes no contrato de `UserSettings`.
 
 ## Formato de erro
 

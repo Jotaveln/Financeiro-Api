@@ -71,7 +71,7 @@ export function GlobalSearch() {
 
   return <div ref={root} className="header-search-wrap relative flex min-w-0 h-[42px] max-w-lg flex-1">
     <Search className="header-search-icon" size={17} aria-hidden="true" />
-    <input ref={input} className="input header-search h-full" value={value} onChange={(event) => setValue(event.target.value)} onFocus={() => value.trim().length > 1 && setOpen(true)} onKeyDown={onKeyDown} placeholder="Buscar transações, contas e cartões..." aria-label="Busca global" role="combobox" aria-expanded={open} aria-controls="global-search-results" aria-activedescendant={open && results[active] ? `search-result-${results[active].type}-${results[active].id}` : undefined} />
+    <input ref={input} className="input header-search h-full" value={value} onChange={(event) => setValue(event.target.value)} onFocus={() => value.trim().length > 1 && setOpen(true)} onKeyDown={onKeyDown} placeholder="Buscar transações, contas e cartões..." aria-label="Busca global" role="combobox" aria-expanded={open} aria-controls="global-search-results" aria-autocomplete="list" aria-activedescendant={open && results[active] ? `search-result-${results[active].type}-${results[active].id}` : undefined} />
     {open && <div id="global-search-results" role="listbox" className="absolute left-0 right-0 top-12 z-50 overflow-hidden rounded-xl border bg-[var(--surface)] p-1 shadow-xl" style={{ borderColor: "var(--line)" }}>
       {state === "loading" && <p className="flex items-center gap-2 p-3 text-sm muted"><LoaderCircle size={16} className="animate-spin" />Buscando...</p>}
       {state === "error" && <p className="flex items-center gap-2 p-3 text-sm text-[var(--danger)]"><AlertCircle size={16} />Não foi possível buscar agora.</p>}

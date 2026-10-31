@@ -1,6 +1,6 @@
 # SESSION HANDOFF — Financeiro-Api
 
-Data da verificação: 29/10/2026
+Data da verificação: 30/10/2026
 Diretório do projeto: `C:\Users\vitor\Financeiro-Api`
 
 Este arquivo registra o estado real verificado no filesystem e no Git para que outra sessão possa continuar sem depender do histórico desta conversa.
@@ -39,8 +39,8 @@ O frontend e o backend são implantados separadamente. O frontend está preparad
 - ASP.NET Identity com usuários `Guid`.
 - JWT Bearer, refresh tokens opacos e cookies HttpOnly.
 - Serilog, Swagger/Swashbuckle, ProblemDetails e rate limiting nativo.
-- Next.js `15.5.26`.
-- React `19.3.0`.
+- Next.js `15.5.28`.
+- React `19.3.1`.
 - JavaScript, sem TypeScript.
 - Tailwind CSS, TanStack Query, React Hook Form, Zod, Recharts, Lucide, next-themes, Sonner e Vitest.
 - Node.js `24.20.0` e npm `11.19.0`.
@@ -78,6 +78,7 @@ Financeiro-Api/
 - Projetos em camadas Domain, Application, Infrastructure e Api.
 - Controllers para autenticação, usuários, contas, categorias, transações, transferências, dashboard, orçamentos, metas, investimentos, dívidas, assinaturas, cartões, faturas, relatórios, busca, notificações e CSV.
 - `ProblemDetails` e handler global de exceções.
+- Error boundary e loading boundary segmentados no dashboard; UI de erro amigável com retry e diagnóstico de stack apenas em desenvolvimento.
 - Logging estruturado com Serilog e `TraceIdentifier`/correlation id no erro.
 - Headers básicos de segurança.
 - CORS configurável por ambiente.
@@ -98,9 +99,11 @@ Financeiro-Api/
 - Páginas para contas, transações, categorias, cartões, transferências, orçamentos, metas, investimentos, dívidas, assinaturas, calendário, relatórios, importação/exportação e configurações.
 - Estados de loading, erro e empty state em componentes compartilhados.
 - Cliente API centralizado em `frontend/lib/api.js`.
-- `NEXT_PUBLIC_DEMO_MODE` é opt-in; o valor esperado para produção é `false`.
+- `NEXT_PUBLIC_DEMO_MODE` é opt-in; o valor esperado para produção é `false`. Operações mutáveis no demo informam que alterações não são persistidas.
 - Logout agora chama a API e remove o cookie de sessão do frontend.
-- Relatórios, preview/exportação CSV usam a API quando o modo demo está desligado.
+- Configurações atualizam perfil, preferências reais e senha; a troca de senha informa a revogação das sessões.
+- Preferências granulares de notificações não são persistidas porque não há campos correspondentes em `UserSettings`.
+- Relatórios, preview/exportação CSV usam a API quando o modo demo está desligado; o preview CSV não persiste transações e a exportação é autenticada.
 - Build standalone configurado para Windows com `fileURLToPath` em `next.config.mjs`.
 
 ### Banco e modelo
@@ -210,8 +213,8 @@ A estratégia mínima de backup, restore, retenção e recuperação está em `d
 - `DashboardUpcoming` ficou limitado a eventos financeiros reais não pagos dos próximos 30 dias e no máximo 20 itens, com ordenação determinística.
 - Pagamentos de fatura/parcela permanecem em transação serializável com revalidação e conflito para repetição; `DebtInstallment` continua sem `PaymentTransactionId`.
 - Notifications agora retornam envelope `{ items }` e os testes frontend cobrem unread inicial, loading, vazio, erro/retry e falha de marcação sem falso sucesso.
-- Foram executados nesta rodada: build Release backend (0 erros/0 warnings), 16 unitários backend aprovados, 37 testes frontend aprovados em 9 arquivos, lint frontend com 0 erros e 2 warnings preexistentes, build frontend com 21 rotas e `git diff --check` sem erros.
-- A suíte de integração permaneceu bloqueada por ausência de `TEST_CONNECTION_STRING`; nenhuma `ConnectionStrings__Postgres`, produção, migration ou E2E foi usada.
+- Foram executados nesta rodada: restore, build Release backend (0 erros/0 warnings), 16 unitários backend aprovados, 49 testes frontend aprovados em 12 arquivos, lint frontend sem warnings, build frontend com 21 rotas e `git diff --check` sem erros.
+- A suíte de integração PostgreSQL não foi executada por solicitação; nenhuma `TEST_CONNECTION_STRING`, conexão de produção, migration ou E2E foi usada.
 
 ### Funcionando/verificado
 
@@ -220,9 +223,11 @@ A estratégia mínima de backup, restore, retenção e recuperação está em `d
 - Testes unitários: 16 aprovados.
 - Suíte completa de backend: 16 unitários aprovados; 4 testes de integração bloqueados por `TEST_CONNECTION_STRING` ausente, sem acessar outro banco.
 - Frontend `npm install`: concluído.
-- Frontend lint: concluído com 0 erros e 2 warnings estilísticos não bloqueantes em `eslint.config.mjs` e `postcss.config.mjs`.
-- Frontend tests: 37 aprovados em 9 arquivos.
+- Frontend lint: concluído sem erros e sem warnings.
+- Frontend tests: 49 aprovados em 12 arquivos.
 - Frontend build: validado após as alterações atuais, com 21 rotas estáticas.
+- Modal: foco inicial, retorno ao acionador, Escape, focus trap e semântica de diálogo cobertos por testes.
+- Error boundary: retry e mensagem amigável; stack é registrado apenas fora de produção.
 - API iniciada localmente sem banco: `/health/live` retornou HTTP 200.
 - Swagger em Development retornou HTTP 200.
 - Migration foi descoberta pelo EF.
@@ -314,16 +319,16 @@ O `npm outdated` mostrou atualizações disponíveis, incluindo Next.js 16 e Vit
 Comando:
 
 ```powershell
-npm audit --prefix frontend --audit-level=moderate
+npm audit --prefix frontend
 ```
 
-Resultado: FAIL com 4 vulnerabilidades:
+Resultado: FAIL com 21 vulnerabilidades: 16 moderadas, 3 altas e 2 críticas.
 
-- 3 moderadas em `@vitest/mocker`, dependência de tooling/testes.
-- 1 alta em `postcss`, transitiva pelo Next.js.
-- A correção automática exige Vitest 5 e Next.js 16.
-- `npm audit fix --force` não foi executado.
-- O impacto direto no bundle de produção não foi demonstrado; Vitest é tooling e PostCSS é usado no pipeline/build, não como funcionalidade financeira do navegador.
+- `vitest@3.2.7` é dependência direta de dev/teste; introduz `@vitest/mocker@3.2.7`, `tinypool@1.1.1` e `vite@7.3.6`. As vulnerabilidades de mock/worker são tooling/teste e a correção principal exige Vitest 5, upgrade major.
+- `postcss@8.4.31` é transitivo do `next@15.5.28`, usado no build; a correção indicada pelo audit exige Next 16, upgrade major. O `postcss@8.5.28` transitivo de Tailwind não é o mesmo nó vulnerável.
+- `source-map-js@1.2.1` e `vite@7.3.6` são transitivos de tooling/build; há correções patch disponíveis (`source-map-js` 1.2.2 e `vite` 7.3.7), mas não foram aplicadas nesta auditoria.
+- A cadeia de ESLint/TypeScript e `minimatch` permanece tooling/dev; o audit aponta upgrades major de ESLint/ecossistema.
+- `npm audit fix --force` não foi executado. O impacto direto no bundle de runtime do navegador não foi demonstrado.
 
 ### NuGet audit
 
@@ -333,15 +338,20 @@ Comando:
 dotnet list Financeiro-Api.sln package --vulnerable --include-transitive
 ```
 
-Resultado: PASS. Nenhum pacote vulnerável reportado nos projetos da solution.
+Resultado atual: `System.Security.Cryptography.Pkcs 9.0.0`, transitivo e High/Moderate conforme os avisos GHSA.
 
-A cadeia corrigida foi verificada com:
+Cadeia no projeto da API:
 
 ```text
-Testcontainers.PostgreSql 4.15.0
-└── Testcontainers 4.15.0
-    └── SSH.NET 2026.0.0
+Financeiro.Api
+└── Microsoft.EntityFrameworkCore.Design 10.0.0 (PrivateAssets=all/design-time)
+    ├── Microsoft.Build.Tasks.Core 17.14.28
+    │   └── System.Security.Cryptography.Pkcs 9.0.0
+    └── Microsoft.CodeAnalysis.Workspaces.MSBuild 4.14.0
+        └── System.Security.Cryptography.Pkcs 9.0.0
 ```
+
+O nome final correto do último pacote é `System.Security.Cryptography.Pkcs`. O pacote é design-time/dev da API, não uma referência direta do runtime funcional, e a versão corrigida disponível indicada pelo `dotnet list --outdated` é `10.0.14` através da atualização do SDK/EF Design. Não foi aplicado pin nem upgrade: o pin explícito exigiria validar compatibilidade do pacote com o conjunto de ferramentas, e a atualização do EF Design deve ser tratada como manutenção compatível separada. O runtime funcional da API não depende diretamente desse pacote segundo `dotnet nuget why`; ainda assim o alerta permanece no restore/build da API.
 
 ### Migrations
 
@@ -407,6 +417,9 @@ Não foi validado ponta a ponta contra banco real. O código foi ajustado para:
 - Logout real implementado no `AppShell`.
 - Relatórios passaram a consultar API em modo não-demo.
 - Preview e exportação CSV receberam caminhos de API real.
+- Configurações foram conectadas aos endpoints reais de perfil, preferências e alteração de senha; notificações granulares permanecem informativas porque não há campos persistidos.
+- Modal recebeu foco inicial, retorno ao acionador, Escape, focus trap e semântica acessível; error/loading boundaries foram adicionados ao dashboard.
+- Operações mutáveis no modo demo exibem explicitamente que alterações não são persistidas.
 - Dados estáticos de calendário e perfil demo foram restringidos ao modo demo.
 - Cookie de refresh passou a aceitar `Auth__CookieSameSite`, necessário para cenários cross-origin em produção.
 - Procedimento de backup e recuperação criado em `docs/backup-recovery.md`.
@@ -482,10 +495,11 @@ Não foi configurado remote, não foi feito push e nenhuma ação no GitHub foi 
 9. Executar o teste com `RUN_POSTGRES_INTEGRATION=true` contra Docker real.
 10. Testar os fluxos auth, ownership, cartões, faturas, parcelas, transferências, orçamentos e metas contra banco real.
 11. Validar frontend com `NEXT_PUBLIC_DEMO_MODE=false` contra API e PostgreSQL reais.
-12. Corrigir ou planejar, com compatibilidade validada, as vulnerabilidades npm de Vitest/PostCSS. Não aplicar `npm audit fix --force` sem validar Next 16/Vitest 5.
-13. Fazer teste visual/e2e real em browser, se a ferramenta estiver disponível.
-14. Decidir o destino do `desktop.ini` não rastreado; não removê-lo automaticamente sem confirmar sua origem/necessidade.
-15. Reavaliar a exposição de Swagger fora de Development antes de produção.
+12. Corrigir ou planejar, com compatibilidade validada, as vulnerabilidades npm de Vitest/PostCSS/Vite. Não aplicar `npm audit fix --force` sem validar Next 16/Vitest 5.
+13. Avaliar atualização compatível do `Microsoft.EntityFrameworkCore.Design`/SDK para remover `System.Security.Cryptography.Pkcs 9.0.0` do grafo design-time.
+14. Fazer teste visual/e2e real em browser, se a ferramenta estiver disponível.
+15. Decidir o destino do `desktop.ini` não rastreado; não removê-lo automaticamente sem confirmar sua origem/necessidade.
+16. Reavaliar a exposição de Swagger fora de Development antes de produção.
 16. Configurar secrets reais somente no provedor, nunca no Git.
 
 ## 8. Docker / WSL / PostgreSQL

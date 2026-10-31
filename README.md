@@ -114,7 +114,7 @@ A API fica em `http://localhost:8080` e o PostgreSQL em `localhost:5432`. Para p
 Todas as rotas privadas usam `Authorization: Bearer <access_token>` e começam por `/api/v1`.
 
 - `POST /auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout`, `/auth/forgot-password`, `/auth/reset-password`.
-- `GET/PUT /users/me`, `POST /users/change-password`, `PUT /users/settings`.
+- `GET/PUT /users/me`, `POST /users/change-password`, `PUT /users/settings`; configurações atualizam perfil, preferências e senha, e a troca de senha revoga as sessões de refresh ativas.
 - CRUD: `/accounts`, `/categories`, `/transactions`, `/credit-cards`, `/budgets`, `/goals`, `/investments`, `/debts`, `/subscriptions`.
 - Fluxos: `POST /transfers`, `POST /credit-cards/{id}/purchases`, `GET /credit-cards/{id}/invoices`, `POST /credit-cards/invoices/{id}/pay`, `POST /goals/{id}/contributions`.
 - Análise: `GET /dashboard`, `/reports/summary`, `/search`, `/notifications`; o dashboard lista até 20 próximos eventos financeiros reais e notifications usam geração idempotente.
@@ -149,7 +149,9 @@ Alternativa: crie o repositório vazio na interface do GitHub e execute `git rem
 
 - O preço de investimentos é informado manualmente; não há dependência de API paga.
 - Exportação obrigatória é CSV; Excel/PDF não fazem parte do núcleo atual.
-- O preview de importação CSV está disponível; confirme/normalize linhas conforme o contrato da API antes de persistir.
+- Preferências granulares de notificações não são persistidas: não existem campos correspondentes em `UserSettings`.
+- O preview de importação CSV apenas analisa o arquivo; a importação persistente de transações ainda não existe. A exportação CSV usa endpoint protegido, Bearer em memória, refresh após `401` e download via `Blob`.
 - A integração PostgreSQL real depende de Docker ou de uma `TEST_CONNECTION_STRING` de teste explicitamente autorizada; sem essa variável a suíte é bloqueada, e não há conexão de produção alternativa. Esta rodada não aplicou migration, não validou produção e não executou E2E.
-- A auditoria npm atual registra vulnerabilidades transitivas em Vitest/PostCSS; a correção disponível exige upgrades breaking para Vitest 5 e Next 16, por isso não foi aplicada sem uma rodada dedicada de compatibilidade.
+- A auditoria npm encontrou 21 vulnerabilidades (16 moderadas, 3 altas e 2 críticas), concentradas em tooling/build/testes; as correções principais exigem Vitest 5 e upgrades de lint/Next que devem ser tratados em rodada própria de compatibilidade. `npm audit fix --force` não foi executado.
+- Error boundary e loading boundary segmentados estão ativos; o modal possui foco inicial, retorno de foco, Escape, `aria-modal` e focus trap. Não há E2E/browser automatizado nesta máquina e a validação visual manual continua pendente.
 - Build npm e testes E2E devem ser executados em máquina com as dependências instaladas.
